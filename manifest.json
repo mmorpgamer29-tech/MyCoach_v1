@@ -1,12 +1,13 @@
 {
   "name": "MyCoach",
   "short_name": "MyCoach",
-  "start_url": "/",
+  "start_url": "/MyCoach_v1/",
+  "scope": "/MyCoach_v1/",
   "display": "standalone",
   "background_color": "#080810",
   "theme_color": "#080810",
   "icons": [
-    { "src": "coach-icon.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "coach-icon.png", "sizes": "512x512", "type": "image/png" }
+    { "src": "/MyCoach_v1/coach-icon.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/MyCoach_v1/coach-icon.png", "sizes": "512x512", "type": "image/png" }
   ]
 }
