@@ -1,0 +1,1622 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="MyCoach">
+  <meta name="theme-color" content="#080810">
+  <link rel="apple-touch-icon" href="coach-icon.png">
+  <link rel="manifest" href="manifest.json">
+  <title>MyCoach</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300&family=Space+Mono:wght@400;700&display=swap');
+
+    /* ─── DESIGN TOKENS 2026 ─────────────────────────────── */
+    :root {
+      /* Brand accent — electric coral + cool cyan */
+      --a1: #ff4f6d;
+      --a2: #ff8552;
+      --a3: #00d4ff;
+      --a4: #7c3aed;
+      --a5: #10b981;
+
+      /* Surfaces — deep navy-black layered glass */
+      --bg:  #080810;
+      --s0:  #0d0d1c;
+      --s1:  #111124;
+      --s2:  #16162e;
+      --s3:  #1c1c38;
+      --bd:  rgba(255,255,255,.07);
+      --bd2: rgba(255,255,255,.12);
+
+      /* Text */
+      --tx:  #f0f0f8;
+      --t2:  #a0a0c0;
+      --t3:  #50507a;
+      --t4:  #2a2a50;
+
+      /* Typography */
+      --font-display: 'Space Mono', 'Courier New', monospace;
+      --font-body:    'DM Sans', 'Helvetica Neue', ui-sans-serif, sans-serif;
+
+      /* Safe area */
+      --sat: env(safe-area-inset-top,    54px);
+      --sab: env(safe-area-inset-bottom, 34px);
+      --sal: env(safe-area-inset-left,    0px);
+      --sar: env(safe-area-inset-right,   0px);
+
+      /* Chrome */
+      --topH: calc(56px + var(--sat));
+      --navH: calc(62px + var(--sab));
+      --touch: 44px;
+
+      /* Glow helpers */
+      --glow-r: rgba(255,79,109,.25);
+      --glow-c: rgba(0,212,255,.2);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box; margin: 0; padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    html, body {
+      height: 100%; background: var(--bg); color: var(--tx);
+      font-family: var(--font-body); overflow-x: hidden;
+      overscroll-behavior: none; -webkit-text-size-adjust: 100%;
+      -webkit-font-smoothing: antialiased;
+    }
+    button { font-family: inherit; cursor: pointer; border: none; background: none; }
+    input  { font-family: inherit; }
+
+    /* ─── GLOBAL BG GRAIN + GRADIENT ────────────────────── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 80% 50% at 20% -10%, rgba(255,79,109,.12), transparent),
+        radial-gradient(ellipse 60% 40% at 90% 110%, rgba(0,212,255,.08), transparent);
+    }
+    body > * { position: relative; z-index: 1; }
+
+    /* ─── LOADING ────────────────────────────────────────── */
+    #loading {
+      position: fixed; inset: 0; z-index: 999;
+      background: var(--bg);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
+    }
+    #loading .logo-wrap {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+    }
+    #loading .logo-mark {
+      font-family: var(--font-display); font-size: 2.8rem; font-weight: 700;
+      letter-spacing: -2px; line-height: 1;
+      background: linear-gradient(135deg, var(--a1), var(--a2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    #loading .logo-sub {
+      font-size: .65rem; font-weight: 600; letter-spacing: 4px;
+      text-transform: uppercase; color: var(--t3);
+    }
+    #loading .loader {
+      width: 36px; height: 2px; background: var(--s3); border-radius: 2px; overflow: hidden;
+    }
+    #loading .loader-bar {
+      height: 100%; width: 0%; border-radius: 2px;
+      background: linear-gradient(90deg, var(--a1), var(--a3));
+      animation: loadBar 1.2s ease-in-out forwards;
+    }
+    @keyframes loadBar { to { width: 100%; } }
+
+    /* ─── TOP BAR ────────────────────────────────────────── */
+    .top {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      height: var(--topH);
+      background: rgba(8,8,16,.85);
+      border-bottom: 1px solid var(--bd);
+      backdrop-filter: blur(32px) saturate(180%);
+      -webkit-backdrop-filter: blur(32px) saturate(180%);
+      display: flex; align-items: flex-end; justify-content: space-between;
+      padding: var(--sat) 20px 12px 20px;
+    }
+    .top-left { display: flex; align-items: center; gap: 12px; }
+    .top-icon {
+      width: 34px; height: 34px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--a1), var(--a2));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+      box-shadow: 0 4px 16px var(--glow-r);
+    }
+    .top-name {
+      font-family: var(--font-display); font-size: 1rem; font-weight: 700;
+      letter-spacing: -1px; color: var(--tx); line-height: 1;
+    }
+    .top-sub { font-size: .6rem; color: var(--t3); margin-top: 3px; font-weight: 500; letter-spacing: .3px; }
+
+    /* ─── PAGES ──────────────────────────────────────────── */
+    .pg {
+      display: none; max-width: 430px; margin: 0 auto;
+      min-height: 100vh;
+      padding-top: calc(var(--topH) + 20px);
+      padding-bottom: calc(var(--navH) + 24px);
+      padding-left: max(18px, var(--sal));
+      padding-right: max(18px, var(--sar));
+    }
+    .pg.on { display: block; animation: pgIn .22s ease; }
+    @keyframes pgIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ─── BOTTOM NAV ─────────────────────────────────────── */
+    .bnav {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      height: var(--navH);
+      background: rgba(8,8,16,.9);
+      border-top: 1px solid var(--bd);
+      backdrop-filter: blur(32px) saturate(180%);
+      -webkit-backdrop-filter: blur(32px) saturate(180%);
+      display: flex; align-items: flex-start;
+      padding-top: 8px; padding-bottom: var(--sab);
+    }
+    .bbtn {
+      flex: 1; background: none; border: none;
+      color: var(--t4); font-family: var(--font-body);
+      font-size: .58rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: .8px;
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      padding: 6px 0; transition: color .2s; min-height: var(--touch);
+    }
+    .bbtn .bico {
+      font-size: 1.3rem; line-height: 1;
+      transition: transform .2s;
+    }
+    .bbtn.on { color: var(--a1); }
+    .bbtn.on .bico { transform: scale(1.15); }
+    .bbtn:active { opacity: .6; }
+
+    /* ─── SECTION HEADINGS ───────────────────────────────── */
+    .section-title {
+      font-family: var(--font-display); font-size: 1.3rem; font-weight: 700;
+      letter-spacing: -1px; margin-bottom: 4px; color: var(--tx); line-height: 1.2;
+    }
+    .section-sub { font-size: .75rem; color: var(--t2); margin-bottom: 20px; line-height: 1.6; font-weight: 400; }
+    .seg { height: 1px; background: var(--bd); margin: 16px 0; }
+
+    /* ─── BADGES ─────────────────────────────────────────── */
+    .badge {
+      display: inline-flex; align-items: center;
+      padding: 3px 10px; border-radius: 999px;
+      font-size: .58rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+    .bp { background: rgba(255,79,109,.12); color: var(--a1); border: 1px solid rgba(255,79,109,.3); }
+    .bl { background: rgba(255,133,82,.12); color: var(--a2); border: 1px solid rgba(255,133,82,.3); }
+    .bu { background: rgba(0,212,255,.1);  color: var(--a3); border: 1px solid rgba(0,212,255,.25); }
+
+    /* ─── CYCLE TABS ─────────────────────────────────────── */
+    .ctabs {
+      display: flex; gap: 8px; margin-bottom: 20px;
+      overflow-x: auto; padding-bottom: 4px; scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    .ctabs::-webkit-scrollbar { display: none; }
+    .ctab {
+      background: var(--s1);
+      border: 1px solid var(--bd);
+      color: var(--t3);
+      padding: 8px 20px; border-radius: 100px;
+      font-family: var(--font-body); font-size: .82rem; font-weight: 600;
+      white-space: nowrap;
+      transition: all .2s; min-height: var(--touch);
+      display: flex; align-items: center;
+    }
+    .ctab.on {
+      background: linear-gradient(135deg, var(--a1), var(--a2));
+      border-color: transparent; color: #fff;
+      box-shadow: 0 4px 18px var(--glow-r);
+    }
+    .ctab:active { opacity: .75; transform: scale(.97); }
+
+    /* ─── SESSION CARDS ──────────────────────────────────── */
+    .slist { display: flex; flex-direction: column; gap: 10px; }
+    .scard {
+      background: var(--s1);
+      border: 1px solid var(--bd);
+      border-radius: 18px;
+      padding: 16px;
+      display: flex; gap: 14px; align-items: center;
+      position: relative; overflow: hidden;
+      transition: transform .15s, box-shadow .15s;
+      -webkit-user-select: none; user-select: none;
+      min-height: 80px;
+    }
+    .scard::before {
+      content: ''; position: absolute; inset: 0; opacity: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,.04), transparent);
+      transition: opacity .15s;
+    }
+    .scard:active { transform: scale(.975); }
+    .scard:active::before { opacity: 1; }
+    .sico {
+      width: 50px; height: 50px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; flex-shrink: 0;
+    }
+    .ip { background: rgba(255,79,109,.12);  border: 1px solid rgba(255,79,109,.2); }
+    .il { background: rgba(255,133,82,.12);  border: 1px solid rgba(255,133,82,.2); }
+    .iu { background: rgba(0,212,255,.08);   border: 1px solid rgba(0,212,255,.18); }
+    .sinfo { flex: 1; min-width: 0; }
+    .sinfo h2 {
+      font-family: var(--font-body); font-size: .95rem; font-weight: 600;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--tx);
+    }
+    .sinfo p { font-size: .72rem; color: var(--t2); margin-top: 2px; font-weight: 400; }
+    .sarrow { color: var(--t4); font-size: 1.2rem; flex-shrink: 0; }
+
+    /* ─── EXERCISE PAGE ──────────────────────────────────── */
+    .ex-toprow {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 14px; gap: 8px;
+    }
+    .back {
+      border: 1px solid var(--bd2); color: var(--t2);
+      padding: 0 14px; border-radius: 10px;
+      font-size: .78rem; font-weight: 500;
+      min-height: var(--touch); display: inline-flex; align-items: center; gap: 6px;
+      transition: all .15s; background: var(--s1);
+    }
+    .back:active { background: var(--s2); color: var(--tx); }
+    .list-btn {
+      border: 1px solid var(--bd2); color: var(--t2);
+      padding: 0 12px; border-radius: 10px;
+      font-size: .7rem; font-weight: 600; letter-spacing: .3px;
+      min-height: var(--touch); display: inline-flex; align-items: center; gap: 5px;
+      transition: all .15s; background: var(--s1);
+    }
+    .list-btn:active { background: var(--s2); color: var(--tx); }
+
+    /* Progress */
+    .exctr {
+      text-align: center; font-size: .72rem; color: var(--t3); margin-bottom: 8px;
+      font-weight: 600; letter-spacing: .5px; text-transform: uppercase; font-family: var(--font-display);
+    }
+    .progw {
+      background: var(--s2); border-radius: 999px; height: 3px; margin-bottom: 20px; overflow: hidden;
+    }
+    .progb {
+      height: 100%; border-radius: 999px;
+      background: linear-gradient(90deg, var(--a1), var(--a3));
+      width: 0%; transition: width .5s cubic-bezier(.4,0,.2,1);
+    }
+
+    /* ─── EXERCISE CARD ──────────────────────────────────── */
+    .excard {
+      background: var(--s1);
+      border: 1px solid var(--bd);
+      border-radius: 20px; padding: 20px; margin-bottom: 12px;
+    }
+    .exname {
+      font-family: var(--font-display); font-size: 1.05rem; font-weight: 700;
+      letter-spacing: -0.5px; line-height: 1.3; flex: 1; color: var(--tx);
+    }
+    .exhdr { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 16px; }
+    .gif-btn {
+      flex-shrink: 0;
+      background: rgba(0,212,255,.08);
+      border: 1px solid rgba(0,212,255,.2);
+      color: var(--a3); border-radius: 8px;
+      padding: 0 11px;
+      font-size: .68rem; font-weight: 700; letter-spacing: .4px;
+      min-height: 34px; display: flex; align-items: center; gap: 4px;
+      transition: all .15s;
+    }
+    .gif-btn:active { background: rgba(0,212,255,.18); }
+
+    /* Info row */
+    .inforow { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+    .ibox {
+      background: var(--s2); border: 1px solid var(--bd);
+      border-radius: 14px; padding: 13px 10px; text-align: center;
+    }
+    .ilb {
+      font-size: .58rem; color: var(--t3); text-transform: uppercase;
+      letter-spacing: 1px; margin-bottom: 6px; font-weight: 600;
+    }
+    .iv {
+      font-family: var(--font-display); font-size: 1.15rem; font-weight: 700; color: var(--a1);
+    }
+    .iv-tap { cursor: pointer; position: relative; }
+    .iv-tap::after {
+      content: '▾'; font-size: .52rem; position: absolute;
+      bottom: 0; right: 2px; color: var(--t3);
+      font-family: var(--font-body);
+    }
+
+    /* Notes */
+    .obs {
+      background: rgba(0,212,255,.04); border: 1px solid rgba(0,212,255,.12);
+      border-radius: 12px; padding: 12px 14px; margin-bottom: 14px;
+      display: flex; gap: 10px; align-items: flex-start;
+    }
+    .obs-icon { font-size: .9rem; flex-shrink: 0; margin-top: 1px; }
+    .obs-text { font-size: .8rem; color: var(--t2); line-height: 1.6; }
+
+    /* ─── WEIGHT BLOCK ───────────────────────────────────── */
+    .psec {
+      background: rgba(255,79,109,.05);
+      border: 1px solid rgba(255,79,109,.18);
+      border-radius: 16px; padding: 16px; margin-bottom: 14px;
+    }
+    .psec-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .psec-title {
+      font-size: .65rem; color: var(--a1); font-weight: 700;
+      text-transform: uppercase; letter-spacing: .8px;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .psec-ref { font-size: .63rem; color: var(--t2); font-style: italic; max-width: 52%; text-align: right; line-height: 1.4; }
+    .pinputs { display: flex; gap: 8px; flex-wrap: wrap; }
+    .sp { flex: 1; min-width: 56px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .splb { font-size: .6rem; color: var(--t3); font-weight: 600; letter-spacing: .5px; text-transform: uppercase; }
+    .sp input {
+      width: 100%; background: rgba(0,0,0,.4);
+      border: 1.5px solid var(--bd2);
+      border-radius: 11px; color: var(--a1);
+      font-family: var(--font-display); font-size: 1rem; font-weight: 700;
+      text-align: center; padding: 10px 2px; outline: none;
+      -webkit-appearance: none;
+      transition: border-color .18s, background .18s; min-height: var(--touch);
+    }
+    .sp input:focus { border-color: var(--a1); background: rgba(255,79,109,.06); }
+    .sp input.is-pr { border-color: rgba(16,185,129,.7); color: var(--a5); }
+
+    @keyframes prPulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(16,185,129,.4); }
+      50%      { box-shadow: 0 0 0 7px rgba(16,185,129,0); }
+    }
+    .pr-badge {
+      display: inline-flex; align-items: center; gap: 3px;
+      background: rgba(16,185,129,.12); border: 1px solid rgba(16,185,129,.35);
+      color: var(--a5); font-size: .57rem; font-weight: 700;
+      padding: 2px 8px; border-radius: 999px;
+      animation: prPulse 1.6s ease-in-out infinite;
+    }
+
+    /* 1RM */
+    .orm-row {
+      display: flex; align-items: center; gap: 8px; margin-top: 12px;
+      padding: 10px 13px;
+      background: rgba(124,58,237,.08); border: 1px solid rgba(124,58,237,.2);
+      border-radius: 12px;
+    }
+    .orm-lbl { font-size: .62rem; color: var(--a4); font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
+    .orm-val { font-family: var(--font-display); font-size: 1rem; font-weight: 700; color: var(--a4); margin-left: auto; }
+
+    /* Save btn */
+    .save-w-btn {
+      width: 100%; padding: 12px; border-radius: 12px;
+      border: 1px solid rgba(255,79,109,.25);
+      background: rgba(255,79,109,.06); color: var(--a1);
+      font-weight: 600; font-size: .8rem; letter-spacing: .2px;
+      transition: all .15s; margin-top: 12px; min-height: var(--touch);
+    }
+    .save-w-btn:active { background: rgba(255,79,109,.16); }
+
+    /* ─── DUAL WEIGHT ────────────────────────────────────── */
+    .sp-dual { flex: 1; min-width: 56px; display: flex; flex-direction: column; align-items: center; gap: 0; }
+    .sp-dual .splb { margin-bottom: 4px; font-size: .6rem; color: var(--t3); font-weight: 600; letter-spacing: .5px; text-transform: uppercase; }
+    .inp-heavy {
+      width: 100%; background: rgba(255,79,109,.1);
+      border: 1.5px solid rgba(255,79,109,.35); border-radius: 10px 10px 0 0;
+      color: #ff6b84; font-family: var(--font-display); font-size: .95rem; font-weight: 700;
+      text-align: center; padding: 9px 2px; outline: none; -webkit-appearance: none;
+    }
+    .inp-heavy:focus { border-color: var(--a1); background: rgba(255,79,109,.18); }
+    .inp-light {
+      width: 100%; background: rgba(0,212,255,.07);
+      border: 1.5px solid rgba(0,212,255,.28); border-top: none; border-radius: 0 0 10px 10px;
+      color: var(--a3); font-family: var(--font-display); font-size: .95rem; font-weight: 700;
+      text-align: center; padding: 9px 2px; outline: none; -webkit-appearance: none;
+    }
+    .inp-light:focus { border-color: var(--a3); background: rgba(0,212,255,.15); }
+    .dual-legend { display: flex; justify-content: space-between; padding: 0 3px; margin-top: 4px; font-size: .58rem; font-weight: 700; }
+    .dual-legend .leg-h { color: rgba(255,79,109,.85); }
+    .dual-legend .leg-l { color: rgba(0,212,255,.85); }
+
+    /* ─── DUAL REPS ──────────────────────────────────────── */
+    .reps-dual-box { display: flex; width: 100%; border-radius: 11px; overflow: hidden; border: 1px solid var(--bd); }
+    .reps-dual-half {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      padding: 8px 4px 7px; cursor: pointer; transition: filter .12s;
+      min-height: 64px; justify-content: center;
+    }
+    .reps-dual-half.heavy { background: rgba(255,79,109,.1); border-right: 1px solid var(--bd); }
+    .reps-dual-half.light { background: rgba(0,212,255,.07); }
+    .reps-dual-half:active { filter: brightness(1.3); }
+    .reps-dual-lbl { font-size: .54rem; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; margin-bottom: 3px; }
+    .reps-dual-half.heavy .reps-dual-lbl { color: rgba(255,79,109,.9); }
+    .reps-dual-half.light .reps-dual-lbl  { color: rgba(0,212,255,.9); }
+    .reps-dual-val { font-family: var(--font-display); font-size: 1.15rem; font-weight: 700; line-height: 1; }
+    .reps-dual-half.heavy .reps-dual-val { color: #ff6b84; }
+    .reps-dual-half.light .reps-dual-val  { color: var(--a3); }
+    .reps-dual-unit { font-size: .54rem; font-weight: 600; margin-top: 2px; opacity: .6; }
+    .reps-dual-half.heavy .reps-dual-unit { color: #ff6b84; }
+    .reps-dual-half.light .reps-dual-unit  { color: var(--a3); }
+
+    /* ─── SERIES DOTS ────────────────────────────────────── */
+    .dotswrap { margin-bottom: 16px; }
+    .dlbl { font-size: .58rem; color: var(--t3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; font-weight: 600; }
+    .drow { display: flex; gap: 10px; flex-wrap: wrap; }
+    .dot {
+      width: 48px; height: 48px; border-radius: 14px;
+      border: 1.5px solid var(--bd2); background: var(--s2);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display); font-size: .85rem; font-weight: 700; color: var(--t3);
+      cursor: pointer; -webkit-user-select: none; user-select: none;
+      transition: all .2s;
+    }
+    .dot:active { transform: scale(.82); }
+    .dot.on {
+      background: linear-gradient(135deg, var(--a1), var(--a2));
+      border-color: transparent; color: #fff;
+      box-shadow: 0 4px 16px var(--glow-r);
+    }
+
+    /* ─── TIMER ──────────────────────────────────────────── */
+    .timer-block {
+      background: var(--s2); border: 1px solid var(--bd);
+      border-radius: 18px; padding: 18px; margin-bottom: 14px;
+      text-align: center; position: relative; overflow: hidden;
+    }
+    .timer-block::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 50% 110%, rgba(255,79,109,.05), transparent 60%);
+      pointer-events: none;
+    }
+    .timer-hdr {
+      font-size: .6rem; color: var(--t3); text-transform: uppercase;
+      letter-spacing: 1px; margin-bottom: 10px; font-weight: 600;
+      display: flex; align-items: center; justify-content: center; gap: 5px;
+    }
+    .timer-display {
+      font-family: var(--font-display); font-size: 3.2rem; font-weight: 700;
+      letter-spacing: -2px; line-height: 1; margin-bottom: 16px;
+      transition: color .3s;
+    }
+    .timer-display.running { color: var(--a1); }
+    .timer-display.done    { color: var(--a5); }
+    .timer-display.idle    { color: var(--tx); }
+    .timer-btns { display: flex; gap: 10px; justify-content: center; }
+    .tbtn {
+      padding: 11px 24px; border-radius: 12px;
+      font-family: var(--font-body); font-weight: 600; font-size: .85rem;
+      transition: all .15s; letter-spacing: .2px;
+      display: flex; align-items: center; gap: 5px; min-height: var(--touch);
+    }
+    .tbtn:active { transform: scale(.94); }
+    .tbtn-start {
+      background: linear-gradient(135deg, var(--a1), var(--a2));
+      color: #fff; flex: 1;
+      box-shadow: 0 4px 16px var(--glow-r);
+    }
+    .tbtn-reset { background: var(--s3); border: 1px solid var(--bd); color: var(--t2); }
+    .timer-progress {
+      position: absolute; bottom: 0; left: 0; height: 2px;
+      background: linear-gradient(90deg, var(--a1), var(--a3));
+      transition: width .95s linear; width: 0%;
+    }
+
+    /* ─── NAV BUTTONS ────────────────────────────────────── */
+    .navex { display: flex; gap: 10px; margin-top: 10px; }
+    .nb {
+      flex: 1; padding: 15px; border-radius: 16px;
+      font-family: var(--font-body); font-weight: 600; font-size: .95rem;
+      transition: all .15s; min-height: var(--touch);
+    }
+    .nb:active { transform: scale(.97); }
+    .nbprev { background: var(--s2); border: 1px solid var(--bd); color: var(--t2); }
+    .nbnext {
+      background: linear-gradient(135deg, var(--a1), var(--a2));
+      color: #fff; box-shadow: 0 4px 24px var(--glow-r);
+    }
+
+    /* ─── SUPERSET ───────────────────────────────────────── */
+    .sswrap { border-radius: 22px; padding: 2px; margin-bottom: 12px; }
+    .ss0 { background: linear-gradient(135deg, rgba(255,133,82,.4), rgba(255,133,82,.06)); }
+    .ss1 { background: linear-gradient(135deg, rgba(0,212,255,.35), rgba(0,212,255,.06)); }
+    .ss2 { background: linear-gradient(135deg, rgba(124,58,237,.4), rgba(124,58,237,.06)); }
+    .ssin { background: var(--s1); border-radius: 20px; padding: 18px; }
+    .ssbdg {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: .6rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .8px; margin-bottom: 14px;
+      padding: 4px 12px; border-radius: 999px;
+    }
+    .ss0 .ssbdg { background: rgba(255,133,82,.15); color: var(--a2); border: 1px solid rgba(255,133,82,.3); }
+    .ss1 .ssbdg { background: rgba(0,212,255,.1);   color: var(--a3); border: 1px solid rgba(0,212,255,.25); }
+    .ss2 .ssbdg { background: rgba(124,58,237,.12); color: var(--a4); border: 1px solid rgba(124,58,237,.3); }
+    .sslbl { font-size: .64rem; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; color: var(--t3); }
+    .ssdiv { height: 1px; margin: 16px 0; background: var(--bd); }
+
+    /* ─── FINISH PAGE ────────────────────────────────────── */
+    .finwrap { text-align: center; padding: 40px 20px; }
+    .finwrap .big { font-size: 4.5rem; margin-bottom: 18px; display: block; }
+    .finwrap h2 {
+      font-family: var(--font-display); font-size: 1.7rem; color: var(--a1);
+      margin-bottom: 10px; font-weight: 700; letter-spacing: -1px;
+    }
+    .finwrap p { font-size: .85rem; color: var(--t2); margin-bottom: 28px; line-height: 1.8; }
+    .fin-stats {
+      background: var(--s1); border: 1px solid var(--bd);
+      border-radius: 18px; padding: 16px; margin-bottom: 24px; text-align: left;
+    }
+    .fin-stat-row {
+      display: flex; justify-content: space-between; padding: 9px 0;
+      border-bottom: 1px solid var(--bd); font-size: .83rem;
+    }
+    .fin-stat-row:last-child { border-bottom: none; }
+    .fin-stat-row span:first-child { color: var(--t2); }
+    .fin-stat-row span:last-child { font-family: var(--font-display); font-weight: 700; color: var(--a2); }
+    .fin-btn {
+      padding: 16px; border-radius: 16px;
+      background: linear-gradient(135deg, var(--a1), var(--a2)); color: #fff;
+      font-weight: 600; font-size: .95rem; width: 100%;
+      box-shadow: 0 6px 28px var(--glow-r); min-height: var(--touch);
+    }
+
+    /* ─── HISTORY ────────────────────────────────────────── */
+    .hist-empty { text-align: center; color: var(--t3); font-size: .85rem; margin-top: 64px; padding: 0 24px; line-height: 2; }
+    .chart-container {
+      background: var(--s1); border: 1px solid var(--bd);
+      border-radius: 20px; padding: 18px; margin-bottom: 16px;
+    }
+    .chart-ttl {
+      font-size: .72rem; color: var(--t2); text-transform: uppercase;
+      letter-spacing: .6px; margin-bottom: 14px; font-weight: 600;
+    }
+    .chart-wrap { position: relative; width: 100%; height: 160px; }
+    canvas { display: block; width: 100% !important; }
+    .ex-select {
+      width: 100%; background: var(--s2); border: 1px solid var(--bd2);
+      color: var(--tx); padding: 11px 13px; border-radius: 12px;
+      font-family: var(--font-body); font-size: .83rem; outline: none;
+      margin-bottom: 14px; -webkit-appearance: none; min-height: var(--touch);
+    }
+    .ex-select option { background: var(--s1); }
+    .hcard {
+      background: var(--s1); border: 1px solid var(--bd);
+      border-radius: 18px; padding: 16px; margin-bottom: 10px;
+    }
+    .hcard-hdr { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; gap: 8px; }
+    .hcard-title { font-size: .93rem; font-weight: 600; color: var(--tx); }
+    .hcard-date { font-size: .68rem; color: var(--t3); margin-top: 3px; }
+    .hcard-ex {
+      padding: 6px 0; border-bottom: 1px solid var(--bd);
+      display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    }
+    .hcard-ex:last-child { border-bottom: none; }
+    .hcard-exname { font-size: .78rem; color: var(--t2); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .hcard-exw { font-family: var(--font-display); font-size: .82rem; font-weight: 700; color: var(--a2); white-space: nowrap; }
+
+    /* ─── COMPACT VIEW ───────────────────────────────────── */
+    .compact-card {
+      background: var(--s1); border: 1px solid var(--bd);
+      border-radius: 16px; padding: 14px; margin-bottom: 10px;
+    }
+    .compact-ex {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 8px 0; border-bottom: 1px solid var(--bd); gap: 10px; min-height: 40px;
+    }
+    .compact-ex:last-child { border-bottom: none; }
+    .compact-exname { font-size: .83rem; font-weight: 500; color: var(--tx); flex: 1; min-width: 0; line-height: 1.3; }
+    .compact-exinfo { font-size: .7rem; color: var(--t2); text-align: right; white-space: nowrap; }
+
+    /* ─── DATA PAGE ──────────────────────────────────────── */
+    .data-panel {
+      background: var(--s1); border: 1px solid var(--bd);
+      border-radius: 18px; padding: 18px; margin-bottom: 14px;
+    }
+    .data-panel h3 { font-size: .86rem; font-weight: 600; color: var(--t2); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+    .data-panel p { font-size: .75rem; color: var(--t3); line-height: 1.6; margin-bottom: 14px; }
+    .data-btns { display: flex; gap: 10px; flex-wrap: wrap; }
+    .data-btn {
+      flex: 1; min-width: 100px; padding: 12px 14px; border-radius: 12px;
+      font-weight: 600; font-size: .8rem; letter-spacing: .2px;
+      transition: all .15s; min-height: var(--touch);
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .data-btn:active { transform: scale(.97); }
+    .data-btn.dl { background: linear-gradient(135deg, var(--a3), rgba(0,212,255,.5)); color: #000; }
+    .data-btn.imp { background: var(--s2); border: 1px solid var(--bd); color: var(--t2); }
+    .data-btn.rst { background: rgba(255,79,109,.1); border: 1px solid rgba(255,79,109,.25); color: var(--a1); }
+    .data-status { font-size: .74rem; color: var(--t2); text-align: center; margin-top: 12px; }
+
+    /* ─── PICKER ─────────────────────────────────────────── */
+    .picker-overlay {
+      display: none; position: fixed; inset: 0; z-index: 400;
+      background: rgba(0,0,0,.82); backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px); align-items: flex-end; justify-content: center;
+    }
+    .picker-overlay.open { display: flex; }
+    .picker-sheet {
+      background: var(--s1); border: 1px solid var(--bd);
+      border-radius: 28px 28px 0 0; padding: 24px 18px;
+      padding-bottom: max(24px, var(--sab)); width: 100%; max-width: 430px;
+    }
+    .picker-title {
+      font-family: var(--font-display); font-size: .88rem; font-weight: 700;
+      color: var(--t2); text-transform: uppercase; letter-spacing: -0.5px;
+      text-align: center; margin-bottom: 18px;
+    }
+    .picker-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 14px; }
+    .picker-btn {
+      background: var(--s2); border: 1.5px solid var(--bd);
+      border-radius: 12px; color: var(--tx);
+      font-family: var(--font-display); font-size: 1.05rem; font-weight: 700;
+      padding: 14px 4px; text-align: center; transition: all .14s; min-height: var(--touch);
+    }
+    .picker-btn:active, .picker-btn.picked {
+      background: linear-gradient(135deg, var(--a1), var(--a2));
+      border-color: transparent; color: #fff;
+    }
+    .picker-cancel {
+      width: 100%; padding: 14px; border-radius: 14px;
+      border: 1px solid var(--bd); background: var(--s2);
+      color: var(--t2); font-weight: 600; font-size: .88rem; min-height: var(--touch);
+    }
+
+    /* ─── TOAST ──────────────────────────────────────────── */
+    .toast {
+      position: fixed; bottom: calc(var(--navH) + 14px); left: 50%;
+      transform: translateX(-50%);
+      background: var(--a3); color: #000;
+      font-size: .78rem; font-weight: 700; padding: 11px 22px;
+      border-radius: 100px; opacity: 0;
+      transition: opacity .28s, transform .28s;
+      pointer-events: none; z-index: 300;
+      white-space: nowrap;
+      box-shadow: 0 4px 22px var(--glow-c);
+    }
+    .toast.on { opacity: 1; }
+
+    /* ─── GIF MODAL ──────────────────────────────────────── */
+    .gif-modal {
+      display: none; position: fixed; inset: 0; z-index: 500;
+      background: rgba(0,0,0,.92); backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      align-items: center; justify-content: center; padding: 24px;
+    }
+    .gif-modal.open { display: flex; }
+    .gif-inner { width: 100%; max-width: 420px; position: relative; }
+    .gif-name {
+      font-family: var(--font-display); font-size: 1rem; font-weight: 700;
+      color: #fff; text-align: center; margin-bottom: 14px; padding: 0 44px; letter-spacing: -0.5px;
+    }
+    .gif-close {
+      position: absolute; top: -6px; right: 0;
+      background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2);
+      color: #fff; border-radius: 50%; width: 36px; height: 36px; font-size: 1rem;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .gif-close:active { background: rgba(255,255,255,.22); }
+    .gif-frame {
+      background: var(--s1); border-radius: 18px;
+      overflow: hidden; border: 1px solid var(--bd);
+    }
+    .gif-frame img { width: 100%; max-height: 60vh; object-fit: contain; display: block; }
+
+    /* ─── SWIPE HINT ─────────────────────────────────────── */
+    .swipe-hint { font-size: .64rem; color: var(--t4); text-align: center; margin-top: 12px; letter-spacing: .5px; transition: opacity .5s; }
+
+    /* ─── DESKTOP ────────────────────────────────────────── */
+    @media (min-width: 640px) {
+      .pg { max-width: 480px; }
+      .bnav { justify-content: center; }
+      .bnav .bbtn { max-width: 120px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Loading -->
+  <div id="loading">
+    <div class="logo-wrap">
+      <div class="logo-mark">MyCoach</div>
+      <div class="logo-sub">Programme de musculation</div>
+    </div>
+    <div class="loader"><div class="loader-bar"></div></div>
+  </div>
+
+  <!-- Top bar -->
+  <div class="top">
+    <div class="top-left">
+      <div class="top-icon">💪</div>
+      <div>
+        <div class="top-name">MyCoach</div>
+        <div class="top-sub">Programme de musculation guidé</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOME -->
+  <div class="pg on" id="pg-home">
+    <div class="section-title">Mes cycles</div>
+    <div class="section-sub">Sélectionne un cycle pour démarrer ta séance</div>
+    <div class="ctabs" id="ctabs"></div>
+    <div class="slist" id="slist"></div>
+  </div>
+
+  <!-- EXERCISE -->
+  <div class="pg" id="pg-ex">
+    <div class="ex-toprow">
+      <button class="back" onclick="backHome()">← Retour</button>
+      <button class="list-btn" onclick="openCompact()">📋 Vue liste</button>
+    </div>
+    <div class="exctr" id="exctr"></div>
+    <div class="progw"><div class="progb" id="progb"></div></div>
+    <div id="excontent"></div>
+    <div class="navex">
+      <button class="nb nbprev" onclick="prevEx()">← Précédent</button>
+      <button class="nb nbnext" id="btnNext" onclick="nextEx()">Suivant →</button>
+    </div>
+    <div class="swipe-hint" id="swipe-hint">← Glisse pour naviguer →</div>
+  </div>
+
+  <!-- COMPACT VIEW -->
+  <div class="pg" id="pg-compact">
+    <button class="back" style="margin-bottom:16px" onclick="closeCompact()">← Retour séance</button>
+    <div class="section-title" id="compact-title">Vue séance</div>
+    <div class="section-sub">Tous les exercices d'un coup d'œil</div>
+    <div id="compact-content"></div>
+  </div>
+
+  <!-- FINISH -->
+  <div class="pg" id="pg-fin">
+    <div class="finwrap">
+      <span class="big">🏆</span>
+      <h2>Séance terminée !</h2>
+      <p>Bravo, toutes les séries sont validées.<br>Pense à bien récupérer !</p>
+      <div class="fin-stats" id="fin-stats"></div>
+      <button class="fin-btn" onclick="backHome()">← Retour aux séances</button>
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="pg" id="pg-hist">
+    <div class="section-title">Historique & Progression</div>
+    <div class="section-sub">Suivi de tes séances et évolution des charges</div>
+    <div id="hist-content"></div>
+  </div>
+
+  <!-- DATA -->
+  <div class="pg" id="pg-data">
+    <div class="section-title">Données</div>
+    <div class="section-sub">Sauvegarde, import et réinitialisation</div>
+
+    <div class="data-panel">
+      <h3>💾 Sauvegarde JSON</h3>
+      <p>Télécharge un fichier JSON avec ton historique et tes poids. Tu peux l'ouvrir sur PC ou le réimporter plus tard.</p>
+      <div class="data-btns">
+        <button class="data-btn dl" onclick="exportJSON()">⬇️ Télécharger</button>
+        <button class="data-btn imp" onclick="qs('import-file').click()">⬆️ Importer</button>
+      </div>
+      <div class="data-status" id="data-status"></div>
+      <input type="file" id="import-file" accept=".json" style="display:none" onchange="importJSON(event)">
+    </div>
+
+    <div class="data-panel">
+      <h3>☁️ Sync navigateur</h3>
+      <p>Tes données sont stockées dans <strong>IndexedDB</strong> — persistantes, robustes, sans limite de taille.</p>
+      <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.2);border-radius:12px">
+        <span style="font-size:1rem">✅</span>
+        <span style="font-size:.76rem;color:#10b981;font-weight:600" id="db-status">IndexedDB actif</span>
+      </div>
+    </div>
+
+    <div class="data-panel">
+      <h3>⚠️ Reset</h3>
+      <p>Efface définitivement tout l'historique et les poids sauvegardés.</p>
+      <div class="data-btns">
+        <button class="data-btn rst" onclick="resetAll()">🗑 Tout réinitialiser</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom nav -->
+  <nav class="bnav">
+    <button class="bbtn on" id="bt-home" onclick="goPage('home')"><span class="bico">🏠</span>Séances</button>
+    <button class="bbtn" id="bt-hist" onclick="goPage('hist')"><span class="bico">📈</span>Historique</button>
+    <button class="bbtn" id="bt-data" onclick="goPage('data')"><span class="bico">💾</span>Data</button>
+  </nav>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- Num Picker -->
+  <div class="picker-overlay" id="picker-overlay" onclick="closePicker(event)">
+    <div class="picker-sheet" onclick="event.stopPropagation()">
+      <div class="picker-title" id="picker-title">Valeur</div>
+      <div class="picker-grid" id="picker-grid"></div>
+      <button class="picker-cancel" onclick="closePicker()">Annuler</button>
+    </div>
+  </div>
+
+  <!-- GIF Modal -->
+  <div class="gif-modal" id="gif-modal" onclick="closeGif()">
+    <div class="gif-inner" onclick="event.stopPropagation()">
+      <div class="gif-name" id="gif-name"></div>
+      <button class="gif-close" onclick="closeGif()">✕</button>
+      <div class="gif-frame"><img id="gif-img" src="" alt=""></div>
+    </div>
+  </div>
+
+  <script>
+  // ════════════════════════════════════════════════════════════
+  // GIF MAP
+  // ════════════════════════════════════════════════════════════
+  const GIF={
+    "Développé couché à la barre":"GIF/developpe-couche.gif",
+    "Développé incliné aux haltères":"GIF/developpe-incline-halteres.gif",
+    "Écartés debout aux poulies vis-à-vis":"GIF/ecarte-poulie-vis-a-vis.gif",
+    "Extension triceps à la poulie haute":"GIF/extension-triceps-poulie-corde.gif",
+    "Barre au front":"GIF/barre-front.gif",
+    "Développé épaules avec haltères":"GIF/developpe-epaules-halteres.gif",
+    "Shrugs avec haltères":"GIF/shrugs-halteres.gif",
+    "Back squat":"GIF/back-squat.gif",
+    "Presse à cuisses à 45°":"GIF/presse-cuisses-inclinee.gif",
+    "Leg extension":"GIF/leg-extension-c1.gif",
+    "Adduction (fermeture) de hanche":"GIF/adduction-hanche.jpg",
+    "Leg curl couché":"GIF/leg-curl-couche.gif",
+    "Goblet squat":"GIF/goblet-squat.gif",
+    "Gainage sur swissball":"GIF/gainage-swissball.gif",
+    "Relevé de buste lesté":"GIF/releve-buste-leste.gif",
+    "Tirage vertical prises séparées":"GIF/tirage-vertical-serree-c1.gif",
+    "Rowing barre prise pronation":"GIF/rowing-barre-pronation.gif",
+    "Tirage à la poulie semi-basse":"GIF/tirage-horizontal-separees.gif",
+    "Curl marteau poulie basse":"GIF/curl-marteau-poulie.gif",
+    "Élévations latérales haltères":"GIF/elevations-laterales-c1.gif",
+    "Pec fly inversé debout":"GIF/pec-fly-inverse.gif",
+    "Développé couché aux haltères":"GIF/developpe-couche-halteres.gif",
+    "Développé décliné à la barre":"GIF/developpe-decline-barre.gif",
+    "Développé incliné à la barre":"GIF/developpe-incline-barre.gif",
+    "Tirage menton à la poulie basse":"GIF/tirage-menton-poulie.gif",
+    "Élévations frontales poulie basse":"GIF/elevations-frontales-poulie.gif",
+    "Extension triceps poulie haute (corde)":"GIF/extension-triceps-poulie-corde.gif",
+    "Extension triceps poulie barre droite":"GIF/extension-triceps-barre-droite.gif",
+    "Presse à cuisse 45°":"GIF/presse-cuisses-inclinee.gif",
+    "Presse à cuisse horizontale":"GIF/presse-cuisse-horizontale.gif",
+    "Fentes statiques":"GIF/fentes-statiques.gif",
+    "Tirage vertical prise serrée":"GIF/tirage-vertical-serree-c1.gif",
+    "Rowing haltère sur banc incliné":"GIF/rowing-haltere-incline.gif",
+    "Pull-over poulie haute barre":"GIF/pullover-poulie-barre.gif",
+    "Élevations latérales avec haltères":"GIF/elevations-laterales-c1.gif",
+    "Face pull poulie haute corde":"GIF/face-pull-poulie.gif",
+    "Curl spider barre EZ":"GIF/curl-spider-barre-ez.gif",
+    "Curl biceps poulie basse barre droite":"GIF/curl-biceps-poulie-barre.gif",
+    "Curl biceps barre":"GIF/curl-biceps-poulie-barre.gif",
+    "Développé incliné cadre guidé":"GIF/developpe-incline-cadre.gif",
+    "Écartés poulies vis-à-vis":"GIF/ecarte-poulie-vis-a-vis.gif",
+    "Développé militaire à la barre":"GIF/developpe-militaire-barre.gif",
+    "Skull crusher avec haltères":"GIF/skull-crusher-halteres.gif",
+    "Extension triceps poulie corde":"GIF/extension-triceps-barre-droite.gif",
+    "Soulevé de terre barre Trap":"GIF/souleve-terre-trap.gif",
+    "Sauts sur box":"GIF/sauts-box.gif",
+    "Hack squat \"pausé\"":"GIF/hack-squat-pause.gif",
+    "Extension mollets":"GIF/extension-mollets.gif",
+    "Tirage vertical guidon de vélo":"GIF/tirage-vertical-guidon.gif",
+    "Rowing supination cadre guidé":"GIF/rowing-supination-cadre.gif",
+    "Tirage horizontal prises séparées":"GIF/tirage-horizontal-separees.gif",
+    "Élévations latérales unilatérales":"GIF/elevations-laterales-unilateral.gif",
+    "Oiseau haltères banc incliné":"GIF/oiseau-halteres-incline.gif",
+    "Curl biceps haltères banc incliné":"GIF/curl-biceps-halteres-incline.gif",
+    "Curl biceps machine":"GIF/curl-biceps-machine.gif",
+  };
+
+  // ════════════════════════════════════════════════════════════
+  // PROGRAMME DATA
+  // ════════════════════════════════════════════════════════════
+  const DATA=[
+    {name:"Cycle 1",sessions:[
+      {name:"Séance 1 — Push",type:"push",muscles:"Pectoraux · Triceps · Épaules",items:[
+        {kind:"single",name:"Développé couché à la barre",series:3,reps:"10",rest:"1'45",notes:"Avec un step sous les pieds",ref:"60 / 60 / 60 kg"},
+        {kind:"single",name:"Développé incliné aux haltères",series:3,reps:"12-10-8",rest:"1'45",notes:"Banc incliné position 2",ref:"14 / 16 / 18 kg"},
+        {kind:"superset",a:{name:"Écartés debout aux poulies vis-à-vis",series:3,reps:"12",rest:"1'30",notes:"Poulies hauteur tête 16",ref:"9 / 9 / 9 kg"},b:{name:"Extension triceps à la poulie haute",series:3,reps:"12",rest:"~",notes:"Prise en V",ref:"20.3 kg"}},
+        {kind:"single",name:"Barre au front",series:3,reps:"10",rest:"1'30",notes:"Allongé sur banc, pieds sur siège",ref:"20 / 20 / 20 kg"},
+        {kind:"single",name:"Développé épaules avec haltères",series:3,reps:"12-10-8",rest:"1'45",notes:"Banc position 4 ; +1 dégressive",ref:"14 / 16 / 18 kg"},
+        {kind:"single",name:"Shrugs avec haltères",series:3,reps:"12",rest:"1'",notes:"Debout, haussements d'épaules",ref:"24 kg"}
+      ]},
+      {name:"Séance 2 — Legs",type:"legs",muscles:"Legs · Tronc",items:[
+        {kind:"single",name:"Back squat",series:3,reps:"10",rest:"1'45",notes:"Squat barre dans le dos, réglage 4",ref:"50 kg"},
+        {kind:"single",name:"Presse à cuisses à 45°",series:3,reps:"12-10-8",rest:"1'45",notes:"Banc incliné position 2",ref:"+40 / +60 / +80 kg"},
+        {kind:"superset",a:{name:"Leg extension",series:3,reps:"12",rest:"1'30",notes:"Machine position 6",ref:"25 kg"},b:{name:"Adduction (fermeture) de hanche",series:3,reps:"12",rest:"~",notes:"Machine position 2",ref:"45 kg"}},
+        {kind:"superset",a:{name:"Leg curl couché",series:3,reps:"12",rest:"1'30",notes:"Machine position 0 / 5",ref:"23 kg"},b:{name:"Goblet squat",series:3,reps:"12",rest:"~",notes:"Haltère contre la poitrine",ref:"12 kg"}},
+        {kind:"superset",a:{name:"Gainage sur swissball",series:3,reps:"≥1'30",rest:"1'",notes:"Avant-bras sur swissball",ref:"1'30 / 1'…"},b:{name:"Relevé de buste lesté",series:3,reps:"10-20",rest:"~",notes:"Banc à lombaires, ballon contre la poitrine",ref:"≈10 kg"}}
+      ]},
+      {name:"Séance 3 — Pull",type:"pull",muscles:"Dos · Biceps · Épaules",items:[
+        {kind:"single",name:"Tirage vertical prises séparées",series:3,reps:"10",rest:"1'45",notes:"Rotation des mains en tirant",ref:"39 kg"},
+        {kind:"single",name:"Rowing barre prise pronation",series:3,reps:"12-10-8",rest:"1'45",notes:"Dos buste penché",ref:"40 / 55 / 60 kg"},
+        {kind:"superset",a:{name:"Tirage à la poulie semi-basse",series:3,reps:"12",rest:"1'30",notes:"Avec corde, poulie pos.3",ref:"15.8 kg"},b:{name:"Curl biceps barre",series:3,reps:"12",rest:"~",notes:"Debout, barre droite ou EZ",ref:"20 kg"}},
+        {kind:"single",name:"Curl marteau poulie basse",series:3,reps:"10",rest:"1'45",notes:"Avec corde",ref:"9 kg"},
+        {kind:"single",name:"Élévations latérales haltères",series:3,reps:"12-10-8",rest:"1'30",notes:"+1 dégressive",ref:"6 / 8 / 9 kg"},
+        {kind:"single",name:"Pec fly inversé debout",series:3,reps:"12",rest:"1'15",notes:"+1 dégressive",ref:"39 → 32 kg"}
+      ]}
+    ]},
+    {name:"Cycle 2",sessions:[
+      {name:"Séance 1 — Push",type:"push",muscles:"Pectoraux · Triceps · Épaules",items:[
+        {kind:"single",name:"Développé couché aux haltères",series:3,reps:"8",rest:"2'",notes:"Avec un step",ref:"24 kg"},
+        {kind:"single",name:"Développé décliné à la barre",series:3,reps:"10",rest:"1'45",notes:"3s descente (3-0-0-0)",ref:"40 kg"},
+        {kind:"single",name:"Développé incliné à la barre",series:3,reps:"12",rest:"1'30",notes:"+3 dégressives dernière série",ref:"37.5 kg"},
+        {kind:"single",name:"Tirage menton à la poulie basse",series:3,reps:"6-12",rest:"1'45",notes:"Lourds(6)+Légers(12) enchaînés",ref:"24 / 15 kg",dualWeight:true},
+        {kind:"superset",a:{name:"Élévations frontales poulie basse",series:3,reps:"10",rest:"1'30",notes:"Avec corde, dos à la poulie",ref:"9 kg"},b:{name:"Extension triceps poulie haute (corde)",series:3,reps:"10",rest:"~",notes:"Dos à la poulie, coudes vers l'avant",ref:"18 kg"}},
+        {kind:"single",name:"Extension triceps poulie barre droite",series:2,reps:"21",rest:"1'15",notes:"7-7-7",ref:"15 kg"}
+      ]},
+      {name:"Séance 2 — Legs",type:"legs",muscles:"Legs",items:[
+        {kind:"single",name:"Back squat",series:4,reps:"8",rest:"2'",notes:"Rack position 4",ref:"2×100 / 2×90 kg"},
+        {kind:"single",name:"Presse à cuisse 45°",series:3,reps:"10",rest:"1'45",notes:"3s pour la descente",ref:"+80 kg"},
+        {kind:"single",name:"Presse à cuisse horizontale",series:3,reps:"6-12",rest:"1'45",notes:"Lourds(6)+Légers(12) enchaînés",ref:"107 / 52 kg",dualWeight:true},
+        {kind:"superset",a:{name:"Fentes statiques",series:3,reps:"10-10",rest:"1'45",notes:"Avec haltères",ref:"10 kg"},b:{name:"Leg curl couché",series:3,reps:"10",rest:"~",notes:"+3 dégressives dernière série",ref:"35 kg"}},
+        {kind:"single",name:"Leg extension",series:2,reps:"21",rest:"1'45",notes:"Siège position 6",ref:"32 kg"}
+      ]},
+      {name:"Séance 3 — Pull",type:"pull",muscles:"Dos · Biceps · Épaules",items:[
+        {kind:"single",name:"Tirage vertical prise serrée",series:3,reps:"8",rest:"2'",notes:"",ref:"75 kg"},
+        {kind:"single",name:"Rowing haltère sur banc incliné",series:3,reps:"10",rest:"1'45",notes:"Banc position 2 ; 3s descente",ref:"12 kg"},
+        {kind:"single",name:"Pull-over poulie haute barre",series:3,reps:"12",rest:"1'15",notes:"+3 dégressives",ref:"24.8 kg"},
+        {kind:"single",name:"Élevations latérales avec haltères",series:3,reps:"6-12",rest:"1'45",notes:"Lourds(6)+Légers(12) enchaînés",ref:"16 / 12 kg",dualWeight:true},
+        {kind:"superset",a:{name:"Face pull poulie haute corde",series:3,reps:"10",rest:"1'30",notes:"Arrière d'épaule",ref:"27 kg"},b:{name:"Curl spider barre EZ",series:3,reps:"10",rest:"~",notes:"Banc position 2",ref:"21.5 kg"}},
+        {kind:"single",name:"Curl biceps poulie basse barre droite",series:2,reps:"21",rest:"1'15",notes:"7-7-7",ref:"13 kg"}
+      ]}
+    ]},
+    {name:"Cycle 3",sessions:[
+      {name:"Séance 1 — Push",type:"push",muscles:"Pectoraux · Triceps · Épaules",items:[
+        {kind:"single",name:"Développé couché à la barre",series:3,reps:"6",rest:"2'30",notes:"",ref:"70 kg"},
+        {kind:"single",name:"Développé incliné cadre guidé",series:3,reps:"10",rest:"1'45",notes:"Machine Smith",ref:"+40 (≈51.3 kg)"},
+        {kind:"single",name:"Écartés poulies vis-à-vis",series:2,reps:"14",rest:"1'",notes:"+3 dégressives",ref:"9 kg"},
+        {kind:"single",name:"Développé militaire à la barre",series:3,reps:"8",rest:"2'",notes:"Debout",ref:"30 kg"},
+        {kind:"single",name:"Skull crusher avec haltères",series:3,reps:"10",rest:"1'30",notes:"Allongé, pieds sur siège",ref:"12 kg"},
+        {kind:"single",name:"Extension triceps poulie corde",series:3,reps:"12",rest:"1'15",notes:"+3 dégressives",ref:"15 → 11.3 kg"}
+      ]},
+      {name:"Séance 2 — Legs",type:"legs",muscles:"Legs",items:[
+        {kind:"single",name:"Soulevé de terre barre Trap",series:3,reps:"6",rest:"2'30",notes:"Barre vide 20 kg",ref:"70 kg"},
+        {kind:"superset",a:{name:"Back squat",series:3,reps:"6",rest:"2'30",notes:"Rack position 4",ref:"90 kg"},b:{name:"Sauts sur box",series:3,reps:"6",rest:"~",notes:"Pliométrie",ref:"61 cm",unit:"cm"}},
+        {kind:"single",name:"Hack squat \"pausé\"",series:3,reps:"10",rest:"1'45",notes:"Remontée explosive",ref:"2×40 / 30 kg"},
+        {kind:"superset",a:{name:"Leg extension",series:3,reps:"12",rest:"1'30",notes:"Dossier pos.6",ref:"36 kg"},b:{name:"Leg curl couché",series:3,reps:"12",rest:"~",notes:"Réglage 0 / 5",ref:"36 kg"}},
+        {kind:"single",name:"Extension mollets",series:3,reps:"8",rest:"1'30",notes:"Presse horizontale, dossier reculé",ref:"66 kg"}
+      ]},
+      {name:"Séance 3 — Pull",type:"pull",muscles:"Dos · Biceps · Épaules",items:[
+        {kind:"single",name:"Tirage vertical guidon de vélo",series:3,reps:"6",rest:"2'30",notes:"Prise montée à l'envers",ref:"79 kg"},
+        {kind:"single",name:"Rowing supination cadre guidé",series:3,reps:"10",rest:"1'45",notes:"Machine Smith",ref:"+35 / +35 / +35"},
+        {kind:"single",name:"Tirage horizontal prises séparées",series:2,reps:"14",rest:"1'15",notes:"+3 dégressives",ref:"32 / 25 kg"},
+        {kind:"single",name:"Élévations latérales unilatérales",series:3,reps:"12-12",rest:"1'",notes:"Poulie hauteur genoux",ref:"4.5 / 4.5 / 3.55 kg"},
+        {kind:"superset",a:{name:"Oiseau haltères banc incliné",series:3,reps:"10",rest:"1'30",notes:"Banc position 2",ref:"6 kg"},b:{name:"Curl biceps haltères banc incliné",series:3,reps:"10",rest:"~",notes:"",ref:"8 kg"}},
+        {kind:"single",name:"Curl biceps machine",series:3,reps:"12",rest:"1'15",notes:"+3 dégressives, siège pos.4",ref:"20 kg"}
+      ]}
+    ]}
+  ];
+
+  // ════════════════════════════════════════════════════════════
+  // INDEXEDDB STORAGE
+  // ════════════════════════════════════════════════════════════
+  const DB_NAME='MyCoachDB', DB_VER=1, STORE='kv';
+  let db=null;
+
+  function openDB(){
+    return new Promise((res,rej)=>{
+      const req=indexedDB.open(DB_NAME,DB_VER);
+      req.onupgradeneeded=e=>e.target.result.createObjectStore(STORE,{keyPath:'k'});
+      req.onsuccess=e=>{db=e.target.result;res(db);};
+      req.onerror=()=>rej(req.error);
+    });
+  }
+  function dbGet(k){
+    return new Promise((res)=>{
+      if(!db){res(null);return;}
+      const tx=db.transaction(STORE,'readonly');
+      const req=tx.objectStore(STORE).get(k);
+      req.onsuccess=()=>res(req.result?req.result.v:null);
+      req.onerror=()=>res(null);
+    });
+  }
+  function dbSet(k,v){
+    return new Promise((res)=>{
+      if(!db){res();return;}
+      const tx=db.transaction(STORE,'readwrite');
+      tx.objectStore(STORE).put({k,v});
+      tx.oncomplete=res; tx.onerror=res;
+    });
+  }
+  function dbDel(k){
+    return new Promise((res)=>{
+      if(!db){res();return;}
+      const tx=db.transaction(STORE,'readwrite');
+      tx.objectStore(STORE).delete(k);
+      tx.oncomplete=res; tx.onerror=res;
+    });
+  }
+  function dbGetAll(){
+    return new Promise((res)=>{
+      if(!db){res({});return;}
+      const tx=db.transaction(STORE,'readonly');
+      const req=tx.objectStore(STORE).getAll();
+      req.onsuccess=()=>{
+        const map={};req.result.forEach(r=>map[r.k]=r.v);res(map);
+      };
+      req.onerror=()=>res({});
+    });
+  }
+
+  const LS={
+    get(k){try{return JSON.parse(localStorage.getItem(k));}catch{return null;}},
+    set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch{}},
+    del(k){try{localStorage.removeItem(k);}catch{}}
+  };
+
+  async function kvGet(k){const v=await dbGet(k);return v!==null?v:LS.get(k);}
+  async function kvSet(k,v){await dbSet(k,v);LS.set(k,v);}
+  async function kvDel(k){await dbDel(k);LS.del(k);}
+
+  // ════════════════════════════════════════════════════════════
+  // DATA KEYS & HELPERS
+  // ════════════════════════════════════════════════════════════
+  function wKey(ci,si,n){return`w_${ci}_${si}_${n.replace(/\W+/g,'_').slice(0,50)}`;}
+  async function getW(ci,si,n){return kvGet(wKey(ci,si,n));}
+  async function setW(ci,si,n,v){return kvSet(wKey(ci,si,n),v);}
+  async function getHistory(){return(await kvGet('history'))||[];}
+  async function appendHistory(entry){const h=await getHistory();h.push(entry);await kvSet('history',h);}
+  async function getPR(n){return(await kvGet('pr_'+n.replace(/\W+/g,'_').slice(0,48)))||0;}
+  async function setPR(n,v){return kvSet('pr_'+n.replace(/\W+/g,'_').slice(0,48),v);}
+  function calc1RM(w,r){if(!w||!r||r<1)return 0;return Math.round(w*(1+r/30));}
+
+  // ════════════════════════════════════════════════════════════
+  // STATE
+  // ════════════════════════════════════════════════════════════
+  let curCycle=0,curSession=0,curIndex=0;
+  let timerInterval=null,timerLeft=0,timerTotal=0,timerRunning=false;
+
+  // ════════════════════════════════════════════════════════════
+  // UTILS
+  // ════════════════════════════════════════════════════════════
+  const qs=id=>document.getElementById(id);
+  function el(tag,cls,txt){const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e;}
+
+  let toastTimer=null;
+  function showToast(msg,col){
+    const t=qs('toast');t.textContent=msg;
+    t.style.background=col||'var(--a3)';t.style.color=col?'#fff':'#000';
+    t.classList.add('on');clearTimeout(toastTimer);
+    toastTimer=setTimeout(()=>t.classList.remove('on'),2400);
+  }
+  function restToSec(s){if(!s||s==='~')return 0;const m=s.match(/(\d+)'(?:(\d+))?/);return m?parseInt(m[1]||0)*60+parseInt(m[2]||0):0;}
+  function fmt(s){return`${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;}
+
+  function showGif(n){const s=GIF[n];if(!s)return;qs('gif-img').src=s;qs('gif-name').textContent=n;qs('gif-modal').classList.add('open');}
+  function closeGif(){qs('gif-modal').classList.remove('open');qs('gif-img').src='';}
+
+  // ════════════════════════════════════════════════════════════
+  // NAVIGATION
+  // ════════════════════════════════════════════════════════════
+  const PAGES=['home','ex','compact','fin','hist','data'];
+  const NAV_BTNS=['bt-home','bt-hist','bt-data'];
+
+  function goPage(id){
+    PAGES.forEach(p=>{const e=qs('pg-'+p);if(e)e.classList.remove('on');});
+    NAV_BTNS.forEach(b=>{const e=qs(b);if(e)e.classList.remove('on');});
+    qs('pg-'+id).classList.add('on');
+    if(id==='home'){qs('bt-home').classList.add('on');}
+    else if(id==='hist'){qs('bt-hist').classList.add('on');renderHistory();}
+    else if(id==='data'){qs('bt-data').classList.add('on');renderDataStatus();}
+    if(!['ex','compact','fin'].includes(id))stopTimer();
+    window.scrollTo(0,0);
+  }
+  function backHome(){goPage('home');stopTimer();}
+  function openCompact(){
+    const sess=DATA[curCycle].sessions[curSession];
+    qs('compact-title').textContent=sess.name;
+    const c=qs('compact-content');c.innerHTML='';
+    sess.items.forEach((it,i)=>{
+      if(it.kind==='single'){c.appendChild(mkCompactRow(it,i+1));}
+      else{
+        const box=el('div','compact-card');
+        const lbl=el('div','');lbl.style.cssText='font-size:.6rem;color:var(--a2);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px';
+        lbl.textContent='🔗 Super Set';box.appendChild(lbl);
+        box.appendChild(mkCompactRow(it.a,'A'));
+        const d=el('div','');d.style.cssText='height:1px;background:var(--bd);margin:8px 0';box.appendChild(d);
+        box.appendChild(mkCompactRow(it.b,'B'));
+        c.appendChild(box);
+      }
+    });
+    goPage('compact');
+  }
+  function closeCompact(){goPage('ex');}
+  function mkCompactRow(ex,idx){
+    const r=el('div','compact-ex');
+    const n=el('div','compact-exname');n.textContent=(idx?idx+'. ':'')+ex.name;
+    const i=el('div','compact-exinfo');i.textContent=`${ex.series}×${ex.reps}  ·  ${ex.ref||'—'}`;
+    r.appendChild(n);r.appendChild(i);return r;
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // HOME
+  // ════════════════════════════════════════════════════════════
+  function renderCycles(){
+    const c=qs('ctabs');c.innerHTML='';
+    DATA.forEach((d,i)=>{
+      const b=el('button','ctab'+(i===curCycle?' on':''),d.name);
+      b.onclick=()=>{curCycle=i;renderCycles();renderSessions();};
+      c.appendChild(b);
+    });
+  }
+  function renderSessions(){
+    const list=qs('slist');list.innerHTML='';
+    DATA[curCycle].sessions.forEach((s,i)=>{
+      const card=el('div','scard');
+      const ico=el('div','sico '+(s.type==='push'?'ip':s.type==='legs'?'il':'iu'));
+      ico.textContent=s.type==='push'?'💪':s.type==='legs'?'🦵':'🏋️';
+      const info=el('div','sinfo');
+      const bdg=el('div','badge '+(s.type==='push'?'bp':s.type==='legs'?'bl':'bu'),s.type.toUpperCase());
+      const h=el('h2','',s.name);const p=el('p','',s.muscles);
+      info.append(bdg,h,p);
+      card.append(ico,info,el('div','sarrow','›'));
+      card.onclick=()=>{curSession=i;curIndex=0;goPage('ex');renderExercise();};
+      list.appendChild(card);
+    });
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // SESSION
+  // ════════════════════════════════════════════════════════════
+  async function renderExercise(){
+    stopTimer();
+    const sess=DATA[curCycle].sessions[curSession];
+    const items=sess.items;
+
+    if(curIndex>=items.length){
+      const hData=[];
+      for(const it of items){
+        if(it.kind==='single'){const w=await getW(curCycle,curSession,it.name);if(w)hData.push({name:it.name,weights:w});}
+        else{for(const k of['a','b']){const w=await getW(curCycle,curSession,it[k].name);if(w)hData.push({name:it[k].name,weights:w});}}
+      }
+      await appendHistory({ci:curCycle,si:curSession,cycleName:DATA[curCycle].name,sessName:sess.name,type:sess.type,date:new Date().toISOString(),exercises:hData});
+      goPage('fin');renderFinStats(hData,sess.name);
+      return;
+    }
+
+    const it=items[curIndex];
+    qs('exctr').textContent=`Exercice ${curIndex+1} / ${items.length}`;
+    qs('progb').style.width=((curIndex/items.length)*100).toFixed(1)+'%';
+    const c=qs('excontent');c.innerHTML='';
+    c.appendChild(it.kind==='single'?await mkSingleCard(it,false):await mkSupersetCard(it));
+    qs('btnNext').textContent=curIndex===items.length-1?'Terminer ✅':'Suivant →';
+    qs('pg-ex').scrollTop=0;
+  }
+  function nextEx(){curIndex++;renderExercise();}
+  function prevEx(){if(curIndex>0){curIndex--;renderExercise();}else showToast('Premier exercice.');}
+
+  // ════════════════════════════════════════════════════════════
+  // FINISH
+  // ════════════════════════════════════════════════════════════
+  async function renderFinStats(hData,sessName){
+    const el2=qs('fin-stats');el2.innerHTML='';
+    const row=(l,v)=>{const r=el('div','fin-stat-row');r.innerHTML=`<span>${l}</span><span>${v}</span>`;el2.appendChild(r);};
+    const d=new Date();
+    row('📅 Date',`${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()}`);
+    row('🏋️ Séance',sessName);row('💪 Exercices',hData.length);
+    let prs=0;
+    for(const ex of hData){
+      const max=Math.max(...(ex.weights||[]).filter(w=>w>0));
+      if(max>0){const prev=await getPR(ex.name);if(max>prev){await setPR(ex.name,max);prs++;}}
+    }
+    if(prs>0)row('🏆 Nouveaux PRs',prs+' 🎉');
+    hData.slice(0,3).forEach(ex=>{
+      const ws=(ex.weights||[]).filter(w=>w>0);
+      if(ws.length){const avg=ws.reduce((a,b)=>a+b,0)/ws.length;row('⚖️ '+ex.name.slice(0,20),avg.toFixed(1)+' kg moy.');}
+    });
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // NUM PICKER
+  // ════════════════════════════════════════════════════════════
+  let pickerCb=null;
+  function openPicker(title,cur,cb){
+    pickerCb=cb;qs('picker-title').textContent=title;
+    const g=qs('picker-grid');g.innerHTML='';
+    for(let i=1;i<=20;i++){
+      const b=el('button','picker-btn',String(i));
+      if(Number(i)===Number(cur))b.classList.add('picked');
+      b.onclick=()=>{pickerCb(i);closePicker();};
+      g.appendChild(b);
+    }
+    qs('picker-overlay').classList.add('open');
+  }
+  function closePicker(e){
+    if(e&&e.target!==qs('picker-overlay'))return;
+    qs('picker-overlay').classList.remove('open');pickerCb=null;
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // SINGLE CARD
+  // ════════════════════════════════════════════════════════════
+  async function mkSingleCard(ex,lite=false){
+    const card=el('div','excard');
+
+    const hdr=el('div','exhdr');
+    const nameEl=el('div','exname',ex.name);
+    hdr.appendChild(nameEl);
+    if(GIF[ex.name]){
+      const gb=el('button','gif-btn','▶ VOIR');
+      gb.onclick=e=>{e.stopPropagation();showGif(ex.name);};
+      hdr.appendChild(gb);
+    }
+    card.appendChild(hdr);
+
+    const infoRow=el('div','inforow');
+    const sbox=el('div','ibox');
+    sbox.appendChild(el('div','ilb','Séries'));
+    const sv=el('div','iv iv-tap',String(ex.series||'—'));
+    sv.onclick=()=>openPicker('Nombre de séries',ex.series,v=>{ex.series=v;sv.textContent=v;refreshDots();});
+    sbox.appendChild(sv);
+
+    const rbox=el('div','ibox');
+    rbox.appendChild(el('div','ilb','Répétitions'));
+    if(ex.dualWeight){
+      const parts=String(ex.reps||'6-12').split('-');
+      if(!ex.repsHeavy)ex.repsHeavy=parseInt(parts[0])||6;
+      if(!ex.repsLight)ex.repsLight=parseInt(parts[1])||12;
+      const dbox=el('div','reps-dual-box');
+      const hs=el('div','reps-dual-half heavy');
+      const hv=el('div','reps-dual-val',String(ex.repsHeavy));
+      hs.append(el('div','reps-dual-lbl','Lourd'),hv,el('div','reps-dual-unit','reps'));
+      hs.onclick=()=>openPicker('Reps lourdes',ex.repsHeavy,v=>{ex.repsHeavy=v;hv.textContent=v;ex.reps=v+'-'+ex.repsLight;});
+      const ls=el('div','reps-dual-half light');
+      const lv=el('div','reps-dual-val',String(ex.repsLight));
+      ls.append(el('div','reps-dual-lbl','Léger'),lv,el('div','reps-dual-unit','reps'));
+      ls.onclick=()=>openPicker('Reps légères',ex.repsLight,v=>{ex.repsLight=v;lv.textContent=v;ex.reps=ex.repsHeavy+'-'+v;});
+      dbox.append(hs,ls);rbox.appendChild(dbox);
+    } else {
+      const rv=el('div','iv iv-tap',ex.reps||'—');
+      const rn=parseInt(String(ex.reps||'').match(/\d+/)?.[0]||0);
+      rv.onclick=()=>openPicker('Répétitions',rn,v=>{ex.reps=String(v);rv.textContent=v;});
+      rbox.appendChild(rv);
+    }
+    infoRow.append(sbox,rbox);card.appendChild(infoRow);
+
+    if(ex.notes){
+      const obs=el('div','obs');
+      obs.innerHTML=`<span class="obs-icon">📋</span><div><div class="ilb" style="font-size:.55rem;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;font-weight:600">Consigne</div><div class="obs-text">${ex.notes}</div></div>`;
+      card.appendChild(obs);
+    }
+
+    card.appendChild(await mkWeightBlock(ex));
+
+    const dotsWrap=mkDots(ex.series||3);
+    function refreshDots(){const nd=mkDots(ex.series||3);dotsWrap.replaceChildren(...Array.from(nd.childNodes));}
+    card.appendChild(dotsWrap);
+
+    if(!lite)card.appendChild(mkTimer(ex.rest));
+    return card;
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // WEIGHT BLOCK
+  // ════════════════════════════════════════════════════════════
+  async function mkWeightBlock(ex){
+    const sec=el('div','psec');
+    const hdr=el('div','psec-hdr');
+    hdr.appendChild(el('div','psec-title','⚖️ Poids'));
+    hdr.appendChild(el('div','psec-ref',ex.ref||'—'));
+    sec.appendChild(hdr);
+
+    const n=ex.series||3;
+    const unit=ex.unit||'kg';
+    const prVal=await getPR(ex.name);
+
+    if(ex.dualWeight){
+      const saved=(await getW(curCycle,curSession,ex.name+'_dual'))||[];
+      const pinputs=el('div','pinputs');
+      const pairs=[];
+      for(let i=0;i<n;i++){
+        const sp=el('div','sp-dual');
+        sp.appendChild(el('div','splb','S'+(i+1)));
+        const ih=document.createElement('input');ih.type='number';ih.step='0.5';ih.inputMode='decimal';ih.placeholder=unit;ih.className='inp-heavy';
+        const il=document.createElement('input');il.type='number';il.step='0.5';il.inputMode='decimal';il.placeholder=unit;il.className='inp-light';
+        if(saved[i]){if(saved[i].h!=null)ih.value=saved[i].h;if(saved[i].l!=null)il.value=saved[i].l;}
+        const saveDual=()=>{const v=pairs.map(p=>({h:p.h.value!==''?parseFloat(p.h.value):null,l:p.l.value!==''?parseFloat(p.l.value):null}));setW(curCycle,curSession,ex.name+'_dual',v);};
+        ih.addEventListener('change',saveDual);il.addEventListener('change',saveDual);
+        pairs.push({h:ih,l:il});
+        sp.append(ih,il);pinputs.appendChild(sp);
+      }
+      const legend=el('div','dual-legend');
+      legend.innerHTML='<span class="leg-h">⬆ Lourd</span><span class="leg-l">⬇ Léger</span>';
+      sec.appendChild(pinputs);sec.appendChild(legend);
+      const btn=el('button','save-w-btn','💾 Sauvegarder les poids');
+      btn.onclick=async()=>{
+        const v=pairs.map(p=>({h:p.h.value!==''?parseFloat(p.h.value):null,l:p.l.value!==''?parseFloat(p.l.value):null}));
+        await setW(curCycle,curSession,ex.name+'_dual',v);showToast('Poids sauvegardés ✅');
+      };
+      sec.appendChild(btn);
+    } else {
+      const saved=(await getW(curCycle,curSession,ex.name))||[];
+      const pinputs=el('div','pinputs');
+      const inputs=[];
+      for(let i=0;i<n;i++){
+        const sp=el('div','sp');
+        sp.appendChild(el('div','splb','S'+(i+1)));
+        const inp=document.createElement('input');
+        inp.type='number';inp.step='0.5';inp.inputMode='decimal';inp.placeholder=unit;
+        if(saved[i]!=null){inp.value=saved[i];if(prVal>0&&saved[i]>=prVal)inp.classList.add('is-pr');}
+        inp.addEventListener('change',async()=>{
+          const v=parseFloat(inp.value);
+          if(v>prVal){inp.classList.add('is-pr');showToast('🏆 Nouveau PR ! '+v+' kg');}
+          else inp.classList.remove('is-pr');
+          const vals=inputs.map(i=>i.value!==''?parseFloat(i.value):null);
+          await setW(curCycle,curSession,ex.name,vals);
+        });
+        inputs.push(inp);sp.appendChild(inp);pinputs.appendChild(sp);
+      }
+      sec.appendChild(pinputs);
+
+      const hist=await getHistory();
+      const allW=[];
+      hist.forEach(s=>s.exercises?.forEach(e=>{if(e.name===ex.name)(e.weights||[]).filter(v=>v>0).forEach(v=>allW.push(v));}));
+      if(allW.length>0){
+        const maxW=Math.max(...allW);
+        const rn=parseInt(String(ex.reps||'').match(/\d+/)?.[0]||0);
+        const orm=calc1RM(maxW,rn);
+        if(orm>0){
+          const ormRow=el('div','orm-row');
+          ormRow.innerHTML=`<span class="orm-lbl">🧮 1RM estimé</span><span class="orm-val">${orm} kg</span>`;
+          sec.appendChild(ormRow);
+        }
+      }
+
+      const btn=el('button','save-w-btn','💾 Sauvegarder les poids');
+      btn.onclick=async()=>{
+        const vals=inputs.map(i=>i.value!==''?parseFloat(i.value):null);
+        await setW(curCycle,curSession,ex.name,vals);showToast('Poids sauvegardés ✅');
+      };
+      sec.appendChild(btn);
+    }
+    return sec;
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // DOTS
+  // ════════════════════════════════════════════════════════════
+  function mkDots(n){
+    const wrap=el('div','dotswrap');
+    wrap.appendChild(el('div','dlbl','Suivi des séries'));
+    const row=el('div','drow');
+    for(let i=0;i<n;i++){
+      const d=el('div','dot',String(i+1));
+      d.onclick=()=>{d.classList.toggle('on');if(navigator.vibrate)navigator.vibrate(d.classList.contains('on')?[28]:[12]);};
+      row.appendChild(d);
+    }
+    wrap.appendChild(row);return wrap;
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // TIMER
+  // ════════════════════════════════════════════════════════════
+  function mkTimer(restStr){
+    const secs=restToSec(restStr);
+    const wrap=el('div','timer-block');
+    wrap.appendChild(el('div','timer-hdr','⏱ Récupération'));
+    const disp=el('div','timer-display idle',secs>0?fmt(secs):'—');
+    const btns=el('div','timer-btns');
+    const bar=el('div','timer-progress');
+    if(secs>0){
+      const startBtn=el('button','tbtn tbtn-start','▶ Démarrer');
+      const resetBtn=el('button','tbtn tbtn-reset','↺ Reset');
+      startBtn.onclick=()=>{if(timerRunning){pauseTimer(disp,startBtn);}else{startTimer(secs,disp,startBtn,bar);}};
+      resetBtn.onclick=()=>{stopTimer();disp.textContent=fmt(secs);disp.className='timer-display idle';bar.style.width='0%';startBtn.textContent='▶ Démarrer';};
+      btns.append(startBtn,resetBtn);
+    }
+    wrap.append(disp,btns,bar);return wrap;
+  }
+  function startTimer(total,disp,btn,bar){
+    stopTimer();timerLeft=total;timerTotal=total;timerRunning=true;
+    btn.textContent='⏸ Pause';disp.className='timer-display running';bar.style.width='0%';
+    timerInterval=setInterval(()=>{
+      timerLeft--;
+      disp.textContent=fmt(Math.max(0,timerLeft));
+      bar.style.width=((1-timerLeft/timerTotal)*100)+'%';
+      if(timerLeft<=0){
+        stopTimer();disp.textContent='GO !';disp.className='timer-display done';
+        bar.style.width='100%';btn.textContent='▶ Relancer';
+        if(navigator.vibrate)navigator.vibrate([200,80,200,80,350]);
+      }
+    },1000);
+  }
+  function pauseTimer(disp,btn){clearInterval(timerInterval);timerRunning=false;btn.textContent='▶ Reprendre';disp.className='timer-display idle';}
+  function stopTimer(){clearInterval(timerInterval);timerInterval=null;timerRunning=false;}
+
+  // ════════════════════════════════════════════════════════════
+  // SUPERSET CARD
+  // ════════════════════════════════════════════════════════════
+  const SSCLS=['ss0','ss1','ss2'];
+  async function mkSupersetCard(ss){
+    const wrap=el('div','sswrap '+SSCLS[curIndex%3]);
+    const inner=el('div','ssin');
+    inner.appendChild(el('div','ssbdg','🔗 SUPER SET'));
+    for(let i=0;i<2;i++){
+      const k=i===0?'a':'b';
+      inner.appendChild(el('div','sslbl','Exercice '+(i===0?'A':'B')));
+      inner.appendChild(await mkSingleCard(ss[k],true));
+      if(i===0)inner.appendChild(el('div','ssdiv'));
+    }
+    const restStr=ss.a.rest&&ss.a.rest!=='~'?ss.a.rest:ss.b.rest;
+    inner.appendChild(mkTimer(restStr));
+    wrap.appendChild(inner);return wrap;
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // SWIPE
+  // ════════════════════════════════════════════════════════════
+  (()=>{
+    let sx=0,sy=0,dragging=false;
+    document.addEventListener('touchstart',e=>{
+      if(!qs('pg-ex').classList.contains('on'))return;
+      sx=e.touches[0].clientX;sy=e.touches[0].clientY;dragging=true;
+    },{passive:true});
+    document.addEventListener('touchend',e=>{
+      if(!dragging||!qs('pg-ex').classList.contains('on'))return;
+      const dx=e.changedTouches[0].clientX-sx;
+      const dy=e.changedTouches[0].clientY-sy;
+      dragging=false;
+      if(Math.abs(dx)>Math.abs(dy)*1.5&&Math.abs(dx)>55){
+        if(dx<0)nextEx(); else prevEx();
+      }
+    },{passive:true});
+  })();
+
+  // ════════════════════════════════════════════════════════════
+  // HISTORY
+  // ════════════════════════════════════════════════════════════
+  async function renderHistory(){
+    const hist=await getHistory();
+    const c=qs('hist-content');c.innerHTML='';
+    if(!hist.length){c.innerHTML='<div class="hist-empty">📭<br><br>Aucune séance enregistrée.<br>Termine une séance pour voir ton historique.</div>';return;}
+
+    const exNames=[...new Set(hist.flatMap(s=>s.exercises?.map(e=>e.name)||[]))];
+
+    const chartCard=el('div','chart-container');
+    chartCard.appendChild(el('div','chart-ttl','📊 Progression par exercice'));
+    const sel=document.createElement('select');sel.className='ex-select';
+    exNames.forEach(n=>{const o=document.createElement('option');o.value=n;o.textContent=n;sel.appendChild(o);});
+    chartCard.appendChild(sel);
+    const chartWrap=el('div','chart-wrap');
+    const canvas=document.createElement('canvas');canvas.id='progChart';
+    chartWrap.appendChild(canvas);chartCard.appendChild(chartWrap);
+    const ormEl=el('div','orm-row');ormEl.style.display='none';ormEl.style.marginTop='10px';chartCard.appendChild(ormEl);
+    c.appendChild(chartCard);
+
+    function drawChart(exName){
+      const data=[];
+      hist.forEach(s=>{
+        const ex=s.exercises?.find(e=>e.name===exName);
+        if(ex){const ws=(ex.weights||[]).filter(w=>w>0);if(ws.length){const d=new Date(s.date);data.push({dt:`${d.getDate()}/${d.getMonth()+1}`,avg:ws.reduce((a,b)=>a+b,0)/ws.length,max:Math.max(...ws)});}}
+      });
+      if(data.length>0){
+        const allReps=DATA.flatMap(c=>c.sessions).flatMap(s=>s.items).find(it=>it.kind==='single'&&it.name===exName)?.reps||'0';
+        const rn=parseInt(String(allReps).match(/\d+/)?.[0]||0);
+        const orm=calc1RM(data.at(-1).max,rn);
+        if(orm>0){ormEl.innerHTML=`<span class="orm-lbl">🧮 1RM estimé (dernier)</span><span class="orm-val">${orm} kg</span>`;ormEl.style.display='flex';}
+        else ormEl.style.display='none';
+      }
+      const cv=canvas,ctx=cv.getContext('2d');
+      const W=cv.offsetWidth||360,H=155;cv.width=W;cv.height=H;ctx.clearRect(0,0,W,H);
+      if(!data.length){ctx.fillStyle='#50507a';ctx.font='13px DM Sans,sans-serif';ctx.textAlign='center';ctx.fillText('Pas encore de données',W/2,H/2);return;}
+      const pd={l:42,r:16,t:14,b:28};
+      const gw=W-pd.l-pd.r,gh=H-pd.t-pd.b;
+      const vals=data.map(d=>d.avg);
+      const mn=Math.min(...vals)*.88,mx=Math.max(...vals)*1.06;
+      const ry=v=>pd.t+gh-(v-mn)/(mx-mn||1)*gh;
+      const rx=i=>pd.l+(i/(data.length-1||1))*gw;
+      // Grid
+      ctx.strokeStyle='rgba(255,255,255,.05)';ctx.lineWidth=1;
+      for(let i=0;i<=4;i++){const y=pd.t+i*(gh/4);ctx.beginPath();ctx.moveTo(pd.l,y);ctx.lineTo(pd.l+gw,y);ctx.stroke();}
+      // Y labels
+      ctx.fillStyle='#50507a';ctx.font='10px DM Sans,sans-serif';ctx.textAlign='right';
+      for(let i=0;i<=4;i++){const v=mx-(i/4)*(mx-mn);ctx.fillText(v.toFixed(1),pd.l-5,pd.t+i*(gh/4)+4);}
+      // Area
+      if(data.length>1){
+        const grad=ctx.createLinearGradient(0,pd.t,0,pd.t+gh);
+        grad.addColorStop(0,'rgba(255,79,109,.28)');grad.addColorStop(1,'rgba(255,79,109,.01)');
+        ctx.beginPath();ctx.moveTo(rx(0),ry(vals[0]));
+        vals.forEach((_,i)=>{if(i>0)ctx.lineTo(rx(i),ry(vals[i]));});
+        ctx.lineTo(rx(data.length-1),pd.t+gh);ctx.lineTo(rx(0),pd.t+gh);ctx.closePath();
+        ctx.fillStyle=grad;ctx.fill();
+      }
+      // Line
+      ctx.strokeStyle='#ff4f6d';ctx.lineWidth=2.5;ctx.lineJoin='round';ctx.beginPath();
+      data.forEach((d,i)=>{i?ctx.lineTo(rx(i),ry(d.avg)):ctx.moveTo(rx(i),ry(d.avg));});ctx.stroke();
+      // Dots
+      data.forEach((d,i)=>{ctx.beginPath();ctx.arc(rx(i),ry(d.avg),4.5,0,Math.PI*2);ctx.fillStyle='#00d4ff';ctx.fill();ctx.strokeStyle='#080810';ctx.lineWidth=1.5;ctx.stroke();});
+      // X labels
+      ctx.fillStyle='#50507a';ctx.font='10px DM Sans,sans-serif';ctx.textAlign='center';
+      data.forEach((d,i)=>ctx.fillText(d.dt,rx(i),H-8));
+    }
+    sel.addEventListener('change',()=>drawChart(sel.value));
+    setTimeout(()=>{if(exNames[0])drawChart(exNames[0]);},60);
+
+    c.appendChild(el('div','section-title','Séances passées'));
+    c.appendChild(el('div','seg'));
+    [...hist].reverse().forEach(s=>{
+      const card=el('div','hcard');
+      const badgeC=s.type==='push'?'bp':s.type==='legs'?'bl':'bu';
+      const d=new Date(s.date);
+      const ds=`${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+      const lft=el('div','');
+      lft.innerHTML=`<div class="badge ${badgeC}">${(s.type||'').toUpperCase()}</div><div class="hcard-title">${s.sessName}</div><div class="hcard-date">${s.cycleName} · ${ds}</div>`;
+      const hdr=el('div','hcard-hdr');hdr.appendChild(lft);card.appendChild(hdr);
+      (s.exercises||[]).forEach(ex=>{
+        const row=el('div','hcard-ex');
+        const wstr=(ex.weights||[]).filter(w=>w>0).map(w=>w+'kg').join(' / ')||'—';
+        row.innerHTML=`<div class="hcard-exname">${ex.name}</div><div class="hcard-exw">${wstr}</div>`;
+        card.appendChild(row);
+      });
+      if(!(s.exercises||[]).length)card.innerHTML+='<div style="color:var(--t4);font-size:.78rem;padding-top:6px">Aucun poids enregistré</div>';
+      c.appendChild(card);
+    });
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // DATA PAGE
+  // ════════════════════════════════════════════════════════════
+  async function renderDataStatus(){
+    const h=await getHistory();
+    qs('db-status').textContent=`IndexedDB actif — ${h.length} séance${h.length!==1?'s':''} enregistrée${h.length!==1?'s':''}`;
+  }
+  async function exportJSON(){
+    const all=await dbGetAll();
+    const hist=await getHistory();
+    const payload=JSON.stringify({version:4,exportedAt:new Date().toISOString(),history:hist,kv:all},null,2);
+    const blob=new Blob([payload],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    const date=new Date().toISOString().slice(0,10);
+    a.href=url;a.download=`mycoach-${date}.json`;
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('Export téléchargé ✅');
+  }
+  function importJSON(evt){
+    const file=evt.target.files[0];if(!file)return;
+    const reader=new FileReader();
+    reader.onload=async e=>{
+      try{
+        const data=JSON.parse(e.target.result);
+        if(data.kv){for(const[k,v]of Object.entries(data.kv))await kvSet(k,v);}
+        else{
+          if(data.history)await kvSet('history',data.history);
+          if(data.weights){for(const[k,v]of Object.entries(data.weights))await kvSet(k,v);}
+        }
+        showToast('Import réussi ✅');renderDataStatus();
+      }catch{showToast('Fichier invalide ❌','#ff4f6d');}
+    };
+    reader.readAsText(file);evt.target.value='';
+  }
+  async function resetAll(){
+    if(!confirm('Réinitialiser tous les poids et l\'historique ?'))return;
+    const all=await dbGetAll();
+    for(const k of Object.keys(all))await dbDel(k);
+    localStorage.clear();
+    showToast('Données réinitialisées');renderDataStatus();
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // SERVICE WORKER
+  // ════════════════════════════════════════════════════════════
+  if('serviceWorker'in navigator){
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // INIT
+  // ════════════════════════════════════════════════════════════
+  async function init(){
+    try{await openDB();}catch(e){console.warn('IndexedDB unavailable, using localStorage fallback');}
+    renderCycles();renderSessions();
+    setTimeout(()=>{const l=qs('loading');l.style.opacity='0';l.style.transition='opacity .5s';setTimeout(()=>l.style.display='none',500);},800);
+    setTimeout(()=>{const sh=qs('swipe-hint');if(sh){sh.style.transition='opacity 1s';sh.style.opacity='0';}},6000);
+  }
+  init();
+  </script>
+</body>
+</html>

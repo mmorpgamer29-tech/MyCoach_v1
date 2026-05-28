@@ -1,0 +1,22 @@
+[build]
+  publish = "."
+
+# Headers pour le service worker
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    Service-Worker-Allowed = "/"
+
+# Headers pour index.html
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+# Pas de pretty URLs (évite la redirection / → /Index.html par Netlify)
+[build.processing]
+  skip_processing = false
+
+[build.processing.html]
+  pretty_urls = false
